@@ -271,6 +271,11 @@
     </div>
   </div>
 
+  <!-- ライブラリ読み込み失敗時のバナー -->
+  <div id="qr-lib-error" style="display:none;max-width:520px;margin:0 auto 12px;padding:12px 18px;background:#fed7d7;color:#c53030;border-radius:10px;font-size:0.85rem;text-align:center;">
+    ⚠ QRコードライブラリの読み込みに失敗しました。インターネット接続を確認してページを再読み込みしてください。
+  </div>
+
   <!-- STEP 1: Form -->
   <div class="card" id="form-card">
     <div class="card-title">
@@ -356,16 +361,22 @@
     </div>
   </div>
 
-  <!-- qrcode.js CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
-          integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAXAIn1B2AJ4E/n6hzTzGo4XLQVSJrUJxeQ1FHKG=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
+  <!-- qrcode.js: jsdelivr を優先、失敗時は unpkg からロード -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"
+          onerror="loadQRFallback()"></script>
+  <script>
+  function loadQRFallback() {
+    var s = document.createElement('script');
+    s.src = 'https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js';
+    s.onerror = function() {
+      document.getElementById('qr-lib-error').style.display = 'block';
+    };
+    document.head.appendChild(s);
+  }
+  </script>
 
   <script>
-  // ─── Inline fallback QR library (minimal, using qrcodejs logic) ──────────
-  // If CDN fails, this flag stays false and we show an error.
-  let qrLibReady = typeof QRCode !== 'undefined';
+  let qrLibReady = false;
   window.addEventListener('load', () => { qrLibReady = typeof QRCode !== 'undefined'; });
 
   // ─── State ────────────────────────────────────────────────────────────────
@@ -401,7 +412,7 @@
       return;
     }
 
-    if (!qrLibReady && typeof QRCode === 'undefined') {
+    if (typeof QRCode === 'undefined') {
       alert('QRコードライブラリの読み込みに失敗しました。\nインターネット接続を確認して再読み込みしてください。');
       return;
     }
